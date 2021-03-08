@@ -153,49 +153,58 @@ def search_algo(n, maze, start, end):
     pos = start  
     delay = 0.1
     grid, rect, screen, wid = make_screen(n)
-    stack = [0]
+    queue = [0]
     row = 0
     col = 0
     maze[row][col] = -1
-    step_cost = 3
+    step_cost = 5
     moves = []
+    parent = [-1]*(n*n)
     while pos != end:
+        pos = queue.pop(0)
         row = pos//n
         col = pos%n
-        if (col + 1 < n) and (maze[row][col + 1] not in [-1,1,2]) :
-            stack.append(row*n + col + 1)
+        if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
+            queue.append(row*n + col + 1)
             maze[row][col+1] = -1
-            pos = stack[-1]
-            moves.append("Right")
-        elif (row + 1 < n) and (maze[row + 1][col] not in [-1,1,2]) :
-            stack.append((row + 1)*n + col)
+            parent[queue[-1]] = pos
+            if queue[-1] == end:
+                pos = end
+        if (row + 1 < n) and (maze[row + 1][col] not in [-1,1]) :
+            queue.append((row + 1)*n + col)
             maze[row+1][col] = -1
-            pos = stack[-1]
-            moves.append("Down")
-        elif (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1,2]) :
-            stack.append(row*n + col - 1)
+            parent[queue[-1]] = pos
+            if queue[-1] == end:
+                pos = end
+        if (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1]) :
+            queue.append(row*n + col - 1)
             maze[row][col-1] = -1
-            pos = stack[-1]
-            moves.append("Left")
-        elif (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1,2]) :
-            stack.append((row - 1)*n + col)
+            parent[queue[-1]] = pos
+            if queue[-1] == end:
+                pos = end
+        if (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1]) :
+            queue.append((row - 1)*n + col)
             maze[row-1][col] = -1
-            pos = stack[-1]
-            moves.append("Up")
-        else : #Retracing Back
-            maze[row][col] = 2 
-            pos = stack.pop()
-            moves.pop()
-            redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
-            while check_pos(pos//n,pos%n,n,maze) == 0:
-                maze[pos//n][pos%n] = 2
-                pos = stack.pop()
-                last_move = moves.pop()
-                if check_pos(pos//n,pos%n,n,maze):
-                        stack.append(pos)
-                        moves.append(last_move)
-                redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+            parent[queue[-1]] = pos
+            if queue[-1] == end:
+                pos = end
         redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+    curr_node = end
+    while parent[curr_node] != -1 :
+        maze[curr_node//n][curr_node%n] = 2
+        if parent[curr_node] == curr_node - 1 :
+            moves.append("Right")
+        elif parent[curr_node] == curr_node + 1 :
+            moves.append("Left")
+        elif parent[curr_node] == curr_node + n :
+            moves.append("Up")
+        elif parent[curr_node] == curr_node - n :
+            moves.append("Down")
+        curr_node = parent[curr_node]
+        redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+    moves = moves[::-1]
+    maze[0][0] = 2
+    redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
     print(moves)
     popup_win(str(len(moves)*step_cost), "Score", "./final.png" , screen)
 
