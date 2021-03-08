@@ -144,6 +144,22 @@ def check_pos(row, col, n, maze):
         return 1
     return 0    
 
+
+def h_manhattan(current, end, n):
+    r1 = current//n
+    r2 = end//n
+    c1 = current%n
+    c2 = end%n
+    return abs(r1-r2) + abs(c1-c2)
+
+def h_diagonal(current, end, n):
+    r1 = current//n
+    r2 = end//n
+    c1 = current%n
+    c2 = end%n
+    return (abs(r1-r2)**2 + abs(c1-c2)**2)**(0.5)
+
+
 # This function will contain all your search algorithms
 # maze[row][col] should be used to refer to any position of maze
 # pos is the starting position of maze and end is ending position
@@ -154,48 +170,69 @@ def search_algo(n, maze, start, end):
     pos = start  
     delay = 0.1
     grid, rect, screen, wid = make_screen(n)
+
     queue = PriorityQueue()
     queue.put((0,0))
-    row = 0
-    col = 0
-    maze[row][col] = -1
+    maze[0][0] = -1
     total_cost = 0
     moves = []
     parent = [-1]*(n*n)
+    g = [10**10]*(n*n)
+    f = [10**10]*(n*n)
+    inside_queue = set()
+    inside_queue.add(0)
+    g[0] = 0
+    f[0] = h_manhattan(0,end,n)
+
     while pos != end:
         curr_elem = queue.get()
         curr_cost = curr_elem[0]
         pos = curr_elem[1]
         row = pos//n
         col = pos%n
-        if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
-            queue.put((curr_cost + 2,row*n + col + 1))
-            maze[row][col+1] = -1
-            parent[row*n + col + 1] = pos
-            if row*n + col + 1 == end:
-                pos = end
-                total_cost = curr_cost + 2
-        if (row + 1 < n) and (maze[row + 1][col] not in [-1,1]) :
-            queue.put((curr_cost + 3,(row + 1)*n + col))
-            maze[row+1][col] = -1
-            parent[(row + 1)*n + col] = pos
-            if (row + 1)*n + col == end:
-                pos = end
-                total_cost = curr_cost + 3
-        if (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1]) :
-            queue.put((curr_cost + 2,row*n + col - 1))
-            maze[row][col-1] = -1
-            parent[row*n + col - 1] = pos
-            if row*n + col - 1 == end:
-                pos = end
-                total_cost = curr_cost + 2
-        if (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1]) :
-            queue.put((curr_cost + 2,(row - 1)*n + col))
-            maze[row-1][col] = -1
-            parent[(row - 1)*n + col] = pos
-            if (row - 1)*n + col == end:
-                pos = end
-                total_cost = curr_cost + 2
+        if (col + 1 < n) and (maze[row][col + 1] != 1):
+            curr_pos = row*n + col + 1
+            if g[pos] + 2 < g[curr_pos]:
+                parent[curr_pos] = pos
+                g[curr_elem] = g[pos] + 2
+                f[curr_elem] = g[curr_elem] + h_manhattan(curr_elem, end, n)
+                if curr_elem not in inside_queue:
+                    queue.put((f[curr_elem],curr_elem))
+                    inside_queue.add(curr_elem)
+                    maze[curr_elem//n][curr_elem%n] = -1
+
+        if (row + 1 < n) and (maze[row + 1][col] != 1) :
+            curr_pos = (row + 1)*n + col
+            if g[pos] + 3 < g[curr_pos]:
+                parent[curr_pos] = pos
+                g[curr_elem] = g[pos] + 3
+                f[curr_elem] = g[curr_elem] + h_manhattan(curr_elem, end, n)
+                if curr_elem not in inside_queue:
+                    queue.put((f[curr_elem],curr_elem))
+                    inside_queue.add(curr_elem)
+                    maze[curr_elem//n][curr_elem%n] = -1
+
+        if (col - 1 >= 0) and (maze[row][col - 1] != 1) :
+            curr_pos = row*n + col - 1
+            if g[pos] + 2 < g[curr_pos]:
+                parent[curr_pos] = pos
+                g[curr_elem] = g[pos] + 2
+                f[curr_elem] = g[curr_elem] + h_manhattan(curr_elem, end, n)
+                if curr_elem not in inside_queue:
+                    queue.put((f[curr_elem],curr_elem))
+                    inside_queue.add(curr_elem)
+                    maze[curr_elem//n][curr_elem%n] = -1
+        if (row - 1 >= 0) and (maze[row - 1][col] != 1) :
+            curr_pos = (row - 1)*n + col
+            if g[pos] + 2 < g[curr_pos]:
+                parent[curr_pos] = pos
+                g[curr_elem] = g[pos] + 2
+                f[curr_elem] = g[curr_elem] + h_manhattan(curr_elem, end, n)
+                if curr_elem not in inside_queue:
+                    queue.put((f[curr_elem],curr_elem))
+                    inside_queue.add(curr_elem)
+                    maze[curr_elem//n][curr_elem%n] = -1
+
         redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
     curr_node = end
     while parent[curr_node] != -1 :
