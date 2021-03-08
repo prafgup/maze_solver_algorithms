@@ -150,44 +150,52 @@ def check_pos(row, col, n, maze):
 # pos//n will give row index and pos%n will give col index
 # you can use list as stack or any other data structure to traverse the positions of the maze.
 def search_algo(n, maze, start, end):
+    from queue import PriorityQueue
     pos = start  
     delay = 0.1
     grid, rect, screen, wid = make_screen(n)
-    queue = [0]
+    queue = PriorityQueue()
+    queue.put((0,0))
     row = 0
     col = 0
     maze[row][col] = -1
-    step_cost = 5
+    total_cost = 0
     moves = []
     parent = [-1]*(n*n)
     while pos != end:
-        pos = queue.pop(0)
+        curr_elem = queue.get()
+        curr_cost = curr_elem[0]
+        pos = curr_elem[1]
         row = pos//n
         col = pos%n
         if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
-            queue.append(row*n + col + 1)
+            queue.put((curr_cost + 3,row*n + col + 1))
             maze[row][col+1] = -1
-            parent[queue[-1]] = pos
-            if queue[-1] == end:
+            parent[row*n + col + 1] = pos
+            if row*n + col + 1 == end:
                 pos = end
+                total_cost = curr_cost + 3
         if (row + 1 < n) and (maze[row + 1][col] not in [-1,1]) :
-            queue.append((row + 1)*n + col)
+            queue.put((curr_cost + 2,(row + 1)*n + col))
             maze[row+1][col] = -1
-            parent[queue[-1]] = pos
-            if queue[-1] == end:
+            parent[(row + 1)*n + col] = pos
+            if (row + 1)*n + col == end:
                 pos = end
+                total_cost = curr_cost + 2
         if (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1]) :
-            queue.append(row*n + col - 1)
+            queue.put((curr_cost + 3,row*n + col - 1))
             maze[row][col-1] = -1
-            parent[queue[-1]] = pos
-            if queue[-1] == end:
+            parent[row*n + col - 1] = pos
+            if row*n + col - 1 == end:
                 pos = end
+                total_cost = curr_cost + 3
         if (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1]) :
-            queue.append((row - 1)*n + col)
+            queue.put((curr_cost + 3,(row - 1)*n + col))
             maze[row-1][col] = -1
-            parent[queue[-1]] = pos
-            if queue[-1] == end:
+            parent[(row - 1)*n + col] = pos
+            if (row - 1)*n + col == end:
                 pos = end
+                total_cost = curr_cost + 3
         redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
     curr_node = end
     while parent[curr_node] != -1 :
@@ -206,7 +214,7 @@ def search_algo(n, maze, start, end):
     maze[0][0] = 2
     redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
     print(moves)
-    popup_win(str(len(moves)*step_cost), "Score", "./final.png" , screen)
+    popup_win(str(total_cost), "Score", "./final.png" , screen)
 
 
 
