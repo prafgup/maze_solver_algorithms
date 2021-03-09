@@ -150,7 +150,7 @@ def h_manhattan(current, end, n):
     r2 = end//n
     c1 = current%n
     c2 = end%n
-    return (abs(r1-r2)*3 + abs(c1-c2)*2)
+    return (abs(r1-r2)*1 + abs(c1-c2)*1)
 
 def h_diagonal(current, end, n):
     r1 = current//n
@@ -182,12 +182,14 @@ def search_algo(n, maze, start, end):
     inside_queue.add(0)
     g[0] = 0
     f[0] = h_manhattan(0,end,n)
-    queue.put((f[0],0))
+    queue.put((f[0],0,0))
+    first_in_count = 0
 
     while pos != end:
         curr_elem = queue.get()
         curr_cost = curr_elem[0]
-        pos = curr_elem[1]
+        pos = curr_elem[2]
+        inside_queue.remove(pos)
         row = pos//n
         col = pos%n
         if (col + 1 < n) and (maze[row][col + 1] != 1):
@@ -197,7 +199,8 @@ def search_algo(n, maze, start, end):
                 g[curr_pos] = g[pos] + 2
                 f[curr_pos] = g[curr_pos] + h_manhattan(curr_pos, end, n)
                 if curr_pos not in inside_queue:
-                    queue.put((f[curr_pos],curr_pos))
+                    first_in_count+=1
+                    queue.put((f[curr_pos],first_in_count,curr_pos))
                     inside_queue.add(curr_pos)
                     maze[curr_pos//n][curr_pos%n] = -1
 
@@ -208,7 +211,8 @@ def search_algo(n, maze, start, end):
                 g[curr_pos] = g[pos] + 3
                 f[curr_pos] = g[curr_pos] + h_manhattan(curr_pos, end, n)
                 if curr_pos not in inside_queue:
-                    queue.put((f[curr_pos],curr_pos))
+                    first_in_count+=1
+                    queue.put((f[curr_pos],first_in_count,curr_pos))
                     inside_queue.add(curr_pos)
                     maze[curr_pos//n][curr_pos%n] = -1
 
@@ -219,7 +223,8 @@ def search_algo(n, maze, start, end):
                 g[curr_pos] = g[pos] + 2
                 f[curr_pos] = g[curr_pos] + h_manhattan(curr_pos, end, n)
                 if curr_pos not in inside_queue:
-                    queue.put((f[curr_pos],curr_pos))
+                    first_in_count+=1
+                    queue.put((f[curr_pos],first_in_count,curr_pos))
                     inside_queue.add(curr_pos)
                     maze[curr_pos//n][curr_pos%n] = -1
         if (row - 1 >= 0) and (maze[row - 1][col] != 1) :
@@ -229,7 +234,8 @@ def search_algo(n, maze, start, end):
                 g[curr_pos] = g[pos] + 2
                 f[curr_pos] = g[curr_pos] + h_manhattan(curr_pos, end, n)
                 if curr_pos not in inside_queue:
-                    queue.put((f[curr_pos],curr_pos))
+                    first_in_count+=1
+                    queue.put((f[curr_pos],first_in_count,curr_pos))
                     inside_queue.add(curr_pos)
                     maze[curr_pos//n][curr_pos%n] = -1
 
