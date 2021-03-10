@@ -168,30 +168,31 @@ def search_algo(n, maze, start, end):
         pos = curr_elem[1]
         row = pos//n
         col = pos%n
+        maze[row][col] = -1
         if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
             queue.put((curr_cost + 2,row*n + col + 1))
-            maze[row][col+1] = -1
+            #maze[row][col+1] = -1
             parent[row*n + col + 1] = pos
             if row*n + col + 1 == end:
                 pos = end
                 total_cost = curr_cost + 2
         if (row + 1 < n) and (maze[row + 1][col] not in [-1,1]) :
             queue.put((curr_cost + 3,(row + 1)*n + col))
-            maze[row+1][col] = -1
+            #maze[row+1][col] = -1
             parent[(row + 1)*n + col] = pos
             if (row + 1)*n + col == end:
                 pos = end
                 total_cost = curr_cost + 3
         if (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1]) :
             queue.put((curr_cost + 2,row*n + col - 1))
-            maze[row][col-1] = -1
+            #maze[row][col-1] = -1
             parent[row*n + col - 1] = pos
             if row*n + col - 1 == end:
                 pos = end
                 total_cost = curr_cost + 2
         if (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1]) :
             queue.put((curr_cost + 2,(row - 1)*n + col))
-            maze[row-1][col] = -1
+            #maze[row-1][col] = -1
             parent[(row - 1)*n + col] = pos
             if (row - 1)*n + col == end:
                 pos = end
