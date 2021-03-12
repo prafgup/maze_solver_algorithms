@@ -5,6 +5,9 @@ import tkinter as Mazegame
 from termcolor import colored
 from PIL import ImageTk, Image
 from tkinter import ttk, Canvas, Label
+import tracemalloc
+import time
+
 
 #This function initializes lion and meat positions
 def startend_postion(n):
@@ -150,9 +153,17 @@ def check_pos(row, col, n, maze):
 # pos//n will give row index and pos%n will give col index
 # you can use list as stack or any other data structure to traverse the positions of the maze.
 def search_algo(n, maze, start, end):
+
+    tracemalloc.start()
+    start_time = time.time()
+    current, peak = tracemalloc.get_traced_memory()
+    print(f"Current memory usage before search {current / 10**6}MB")
+
+
+
     from queue import PriorityQueue
     pos = start  
-    delay = 0.1
+    delay = 0.0
     grid, rect, screen, wid = make_screen(n)
     queue = PriorityQueue()
     queue.put((0,0))
@@ -162,42 +173,61 @@ def search_algo(n, maze, start, end):
     total_cost = 0
     moves = []
     parent = [-1]*(n*n)
+    search_cost = 0
+    costs = [10**5]*(n*n)
+
+
     while pos != end:
         curr_elem = queue.get()
         curr_cost = curr_elem[0]
         pos = curr_elem[1]
+        costs[pos] = min(curr_cost,costs[pos])
         row = pos//n
         col = pos%n
         maze[row][col] = -1
-        if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
-            queue.put((curr_cost + 2,row*n + col + 1))
-            #maze[row][col+1] = -1
-            parent[row*n + col + 1] = pos
-            if row*n + col + 1 == end:
-                pos = end
-                total_cost = curr_cost + 2
-        if (row + 1 < n) and (maze[row + 1][col] not in [-1,1]) :
-            queue.put((curr_cost + 3,(row + 1)*n + col))
-            #maze[row+1][col] = -1
-            parent[(row + 1)*n + col] = pos
-            if (row + 1)*n + col == end:
-                pos = end
-                total_cost = curr_cost + 3
-        if (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1]) :
-            queue.put((curr_cost + 2,row*n + col - 1))
-            #maze[row][col-1] = -1
-            parent[row*n + col - 1] = pos
-            if row*n + col - 1 == end:
-                pos = end
-                total_cost = curr_cost + 2
-        if (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1]) :
-            queue.put((curr_cost + 2,(row - 1)*n + col))
-            #maze[row-1][col] = -1
-            parent[(row - 1)*n + col] = pos
-            if (row - 1)*n + col == end:
-                pos = end
-                total_cost = curr_cost + 2
+        expanded = True
+
+        if (col + 1 < n) and (maze[row][col + 1] not in [1]) :
+            if costs[row*n + col + 1] > curr_cost + 2:
+                costs[row*n + col + 1] = curr_cost + 2
+                queue.put((curr_cost + 2,row*n + col + 1))
+                parent[row*n + col + 1] = pos
+                expanded = True
+                if row*n + col + 1 == end:
+                    pos = end
+                    total_cost = curr_cost + 2
+        if (row + 1 < n) and (maze[row + 1][col] not in [1]) :
+            if costs[(row + 1)*n + col] > curr_cost + 3:
+                costs[(row + 1)*n + col] = curr_cost + 3
+                queue.put((curr_cost + 3,(row + 1)*n + col))
+                parent[(row + 1)*n + col] = pos
+                expanded = True
+                if (row + 1)*n + col == end:
+                    pos = end
+                    total_cost = curr_cost + 3
+        if (col - 1 >= 0) and (maze[row][col - 1] not in [1]) :
+            if costs[row*n + col - 1] > curr_cost + 2:
+                costs[row*n + col - 1] = curr_cost + 2
+                queue.put((curr_cost + 2,row*n + col - 1))
+                parent[row*n + col - 1] = pos
+                expanded = True
+                if row*n + col - 1 == end:
+                    pos = end
+                    total_cost = curr_cost + 2
+        if (row - 1 >= 0) and (maze[row - 1][col] not in [1]) :
+            if costs[(row - 1)*n + col] > curr_cost + 2:
+                costs[(row - 1)*n + col] = curr_cost + 2
+                queue.put((curr_cost + 2,(row - 1)*n + col))
+                parent[(row - 1)*n + col] = pos
+                expanded = True
+                if (row - 1)*n + col == end:
+                    pos = end
+                    total_cost = curr_cost + 2
         redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+        if expanded:
+            search_cost +=2 
+            if parent[pos] == pos - n:
+                search_cost+=1 
     curr_node = end
     while parent[curr_node] != -1 :
         maze[curr_node//n][curr_node%n] = 2
@@ -210,10 +240,19 @@ def search_algo(n, maze, start, end):
         elif parent[curr_node] == curr_node - n :
             moves.append("Down")
         curr_node = parent[curr_node]
-        redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
     moves = moves[::-1]
     maze[0][0] = 2
     redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+
+    end_time = time.time()
+    current, peak = tracemalloc.get_traced_memory()
+    print("Total Search Time : {} seconds".format(end_time-start_time))
+    print(f"Peak Memory usage was was {peak / 10**6}MB")
+    print(f"Total Expanding Search Cost is {search_cost} Units")
+    print(f"Best Path Total Cost is {total_cost} Units")
+    tracemalloc.stop()
+
+
     print(moves)
     popup_win(str(total_cost), "Score", "./final.png" , screen)
 
@@ -222,6 +261,9 @@ def search_algo(n, maze, start, end):
 if __name__ == "__main__":
     n = 10 # size of maze
     start, end = startend_postion(n)
+
+    np.random.seed(1112) # seed,total time, memory peak, expanding cost, found path cost
+
     randno = randomize(n)
     maze = prepare_maze(n, randno, start, end)
     search_algo(n, maze, start, end)

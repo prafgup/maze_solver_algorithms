@@ -5,6 +5,8 @@ import tkinter as Mazegame
 from termcolor import colored
 from PIL import ImageTk, Image
 from tkinter import ttk, Canvas, Label
+import tracemalloc
+import time
 
 #This function initializes lion and meat positions
 def startend_postion(n):
@@ -150,8 +152,14 @@ def check_pos(row, col, n, maze):
 # pos//n will give row index and pos%n will give col index
 # you can use list as stack or any other data structure to traverse the positions of the maze.
 def search_algo(n, maze, start, end):
+    tracemalloc.start()
+    start_time = time.time()
+    current, peak = tracemalloc.get_traced_memory()
+    print(f"Current memory usage before search {current / 10**6}MB")
+
+    search_cost = 0
     pos = start  
-    delay = 0.1
+    delay = 0.0
     grid, rect, screen, wid = make_screen(n)
     queue = [0]
     row = 0
@@ -164,31 +172,38 @@ def search_algo(n, maze, start, end):
         pos = queue.pop(0)
         row = pos//n
         col = pos%n
+        expanded = True
         if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
             queue.append(row*n + col + 1)
             maze[row][col+1] = -1
             parent[queue[-1]] = pos
+            expanded = True
             if queue[-1] == end:
                 pos = end
         if (row + 1 < n) and (maze[row + 1][col] not in [-1,1]) :
             queue.append((row + 1)*n + col)
             maze[row+1][col] = -1
             parent[queue[-1]] = pos
+            expanded = True
             if queue[-1] == end:
                 pos = end
         if (col - 1 >= 0) and (maze[row][col - 1] not in [-1,1]) :
             queue.append(row*n + col - 1)
             maze[row][col-1] = -1
             parent[queue[-1]] = pos
+            expanded = True
             if queue[-1] == end:
                 pos = end
         if (row - 1 >= 0) and (maze[row - 1][col] not in [-1,1]) :
             queue.append((row - 1)*n + col)
             maze[row-1][col] = -1
             parent[queue[-1]] = pos
+            expanded = True
             if queue[-1] == end:
                 pos = end
         redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+        if expanded:
+            search_cost+=step_cost
     curr_node = end
     while parent[curr_node] != -1 :
         maze[curr_node//n][curr_node%n] = 2
@@ -201,10 +216,19 @@ def search_algo(n, maze, start, end):
         elif parent[curr_node] == curr_node - n :
             moves.append("Down")
         curr_node = parent[curr_node]
-        redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+        #redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
     moves = moves[::-1]
     maze[0][0] = 2
     redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+
+    end_time = time.time()
+    current, peak = tracemalloc.get_traced_memory()
+    print("Total Search Time : {} seconds".format(end_time-start_time))
+    print(f"Peak Memory usage was was {peak / 10**6}MB")
+    print(f"Total Expanding Search Cost is {search_cost} Units")
+    print(f"Best Path Total Cost is {len(moves)*step_cost} Units")
+    tracemalloc.stop()
+
     print(moves)
     popup_win(str(len(moves)*step_cost), "Score", "./final.png" , screen)
 
@@ -212,6 +236,7 @@ def search_algo(n, maze, start, end):
 
 if __name__ == "__main__":
     n = 10 # size of maze
+    np.random.seed(1112)
     start, end = startend_postion(n)
     randno = randomize(n)
     maze = prepare_maze(n, randno, start, end)
