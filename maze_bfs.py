@@ -136,6 +136,7 @@ def popup_win(msg, title, path ,screen):
 
 #This functions check neighbours of current position i.e. current row and col    
 def check_pos(row, col, n, maze):
+    # can be impplemented in O(1)
     if row in range(n) and col+1 in range(n) and maze[row][col+1] == 0:
         return 1
     elif row+1 in range(n) and col in range(n) and maze[row+1][col] == 0:
@@ -161,18 +162,19 @@ def search_algo(n, maze, start, end):
     pos = start  
     delay = 0.0
     grid, rect, screen, wid = make_screen(n)
-    queue = [0]
+    queue = [0] # BFS Queue (Pop Push function can be implemented in O(1) using 2 pointer)
     row = 0
     col = 0
     maze[row][col] = -1
     step_cost = 5
     moves = []
-    parent = [-1]*(n*n)
+    parent = [-1]*(n*n) # stores parent of every node
     while pos != end:
         pos = queue.pop(0)
         row = pos//n
         col = pos%n
         expanded = True
+        # try expanding current node and adding to the queue
         if (col + 1 < n) and (maze[row][col + 1] not in [-1,1]) :
             queue.append(row*n + col + 1)
             maze[row][col+1] = -1
@@ -205,6 +207,7 @@ def search_algo(n, maze, start, end):
         if expanded:
             search_cost+=step_cost
     curr_node = end
+    # printing the path from start to end
     while parent[curr_node] != -1 :
         maze[curr_node//n][curr_node%n] = 2
         if parent[curr_node] == curr_node - 1 :
@@ -236,7 +239,9 @@ def search_algo(n, maze, start, end):
 
 if __name__ == "__main__":
     n = 10 # size of maze
-    np.random.seed(1112)
+
+    #np.random.seed(1112)
+
     start, end = startend_postion(n)
     randno = randomize(n)
     maze = prepare_maze(n, randno, start, end)

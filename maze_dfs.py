@@ -136,6 +136,7 @@ def popup_win(msg, title, path ,screen):
 
 #This functions check neighbours of current position i.e. current row and col    
 def check_pos(row, col, n, maze):
+    # can be impplemented in O(1)
     if row in range(n) and col+1 in range(n) and maze[row][col+1] == 0:
         return 1
     elif row+1 in range(n) and col in range(n) and maze[row+1][col] == 0:
@@ -161,7 +162,7 @@ def search_algo(n, maze, start, end):
     pos = start  
     delay = 0.0
     grid, rect, screen, wid = make_screen(n)
-    stack = [0]
+    stack = [0] # current path dfs stack
     row = 0
     col = 0
     maze[row][col] = -1
@@ -172,6 +173,8 @@ def search_algo(n, maze, start, end):
         expanded = True
         row = pos//n
         col = pos%n
+
+        # expanding nodes if not already visited and node exists
         if (col + 1 < n) and (maze[row][col + 1] not in [-1,1,2]) :
             stack.append(row*n + col + 1)
             maze[row][col+1] = -1
@@ -196,11 +199,13 @@ def search_algo(n, maze, start, end):
             pos = stack[-1]
             moves.append("Up")
             expanded = True
-        else : #Retracing Back
+        else : #Retracing Back Cant go any further so poping elements from dfs sack
             maze[row][col] = 2 
             pos = stack.pop()
             moves.pop()
             redraw_maze(grid, rect, screen, n, maze, pos, delay, wid, end)
+            
+            # poping until there is a node that can be explored even more
             while check_pos(pos//n,pos%n,n,maze) == 0:
                 maze[pos//n][pos%n] = 2
                 pos = stack.pop()
@@ -228,7 +233,10 @@ def search_algo(n, maze, start, end):
 
 if __name__ == "__main__":
     n = 10 # size of maze
-    np.random.seed(1112)
+
+    #np.random.seed(1112)
+
+
     start, end = startend_postion(n)
     randno = randomize(n)
     maze = prepare_maze(n, randno, start, end)

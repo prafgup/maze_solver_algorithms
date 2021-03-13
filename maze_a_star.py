@@ -145,7 +145,8 @@ def check_pos(row, col, n, maze):
         return 1
     return 0    
 
-
+# As each step costs 3 for downward movement and 2 else 
+# we can use the Down*3 + right*2 as the hurestic function
 def h_manhattan(current, end, n):
     r1 = current//n
     r2 = end//n
@@ -177,18 +178,18 @@ def search_algo(n, maze, start, end):
     pos = start  
     delay = 0
     grid, rect, screen, wid = make_screen(n)
-    queue = PriorityQueue()
+    queue = PriorityQueue()  # Priority queue for storing current nodes in search, stores (cost,time,position)
     maze[0][0] = -1
     total_cost = 0
     moves = []
-    parent = [-1]*(n*n)
-    g = [10**10]*(n*n)
-    f = [10**10]*(n*n)
-    inside_queue = set()
+    parent = [-1]*(n*n) # stores parent of every node
+    g = [10**10]*(n*n)  # current cost to that node
+    f = [10**10]*(n*n)  # g(x) + h(x)
+    inside_queue = set() # stores if a element is inside the queue or not
     inside_queue.add(0)
     g[0] = 0
     f[0] = h_manhattan(0,end,n)
-    queue.put((f[0],0,0))
+    queue.put((f[0],0,0)) # inserting removing takes log(size) time
     first_in_count = 0
     search_cost = 0
 
@@ -200,12 +201,18 @@ def search_algo(n, maze, start, end):
         row = pos//n
         col = pos%n
         expanded = False
+
+        # trying to expand the nodes
         if (col + 1 < n) and (maze[row][col + 1] != 1):
             curr_pos = row*n + col + 1
+
+            # if current path is is less than minimum path to that node we try to add it
             if g[pos] + 2 < g[curr_pos]:
+                # updating costs
                 parent[curr_pos] = pos
                 g[curr_pos] = g[pos] + 2
                 f[curr_pos] = g[curr_pos] + h_manhattan(curr_pos, end, n)
+                # if current node is not inside priority queue add it to the queue
                 if curr_pos not in inside_queue:
                     first_in_count+=1
                     queue.put((f[curr_pos],first_in_count,curr_pos))
@@ -258,6 +265,8 @@ def search_algo(n, maze, start, end):
             if parent[pos] == pos - n:
                 search_cost+=1 
     curr_node = end
+
+    # printing the path from start to end
     while parent[curr_node] != -1 :
         maze[curr_node//n][curr_node%n] = 2
         if parent[curr_node] == curr_node - 1 :
@@ -292,8 +301,10 @@ def search_algo(n, maze, start, end):
 
 if __name__ == "__main__":
     n = 10 # size of maze
+
+    #np.random.seed(1112)
+
     start, end = startend_postion(n)
-    np.random.seed(1112)
     randno = randomize(n)
     maze = prepare_maze(n, randno, start, end)
 

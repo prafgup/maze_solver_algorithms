@@ -165,20 +165,20 @@ def search_algo(n, maze, start, end):
     pos = start  
     delay = 0.0
     grid, rect, screen, wid = make_screen(n)
-    queue = PriorityQueue()
+    queue = PriorityQueue() # VCS priority queue stores (cost,position)
     queue.put((0,0))
     row = 0
     col = 0
     maze[row][col] = -1
     total_cost = 0
     moves = []
-    parent = [-1]*(n*n)
+    parent = [-1]*(n*n) # stores parent of every node
     search_cost = 0
-    costs = [10**5]*(n*n)
+    costs = [10**5]*(n*n) #stores current best cost path till that node
 
 
     while pos != end:
-        curr_elem = queue.get()
+        curr_elem = queue.get() # get top element from priority queue takes O(Size) Time
         curr_cost = curr_elem[0]
         pos = curr_elem[1]
         costs[pos] = min(curr_cost,costs[pos])
@@ -186,8 +186,9 @@ def search_algo(n, maze, start, end):
         col = pos%n
         maze[row][col] = -1
         expanded = True
-
+        # expanding current node
         if (col + 1 < n) and (maze[row][col + 1] not in [1]) :
+            # adding to priority queue if cost is less than current path cost to that node
             if costs[row*n + col + 1] > curr_cost + 2:
                 costs[row*n + col + 1] = curr_cost + 2
                 queue.put((curr_cost + 2,row*n + col + 1))
@@ -229,6 +230,7 @@ def search_algo(n, maze, start, end):
             if parent[pos] == pos - n:
                 search_cost+=1 
     curr_node = end
+    # printing the path from start to end
     while parent[curr_node] != -1 :
         maze[curr_node//n][curr_node%n] = 2
         if parent[curr_node] == curr_node - 1 :
@@ -262,7 +264,7 @@ if __name__ == "__main__":
     n = 10 # size of maze
     start, end = startend_postion(n)
 
-    np.random.seed(1112) # seed,total time, memory peak, expanding cost, found path cost
+    #np.random.seed(1112) 
 
     randno = randomize(n)
     maze = prepare_maze(n, randno, start, end)
